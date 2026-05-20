@@ -1,4 +1,12 @@
+
 {
+  "name": "server",
+  "version": "1.0.0",
+  "type": "module",
+  "prisma": {
+  "seed": "node seed.js"
+},
+
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "cors": "^2.8.6",
