@@ -1,56 +1,42 @@
 // server/seed.js
-// server/seed.js
-import { PrismaClient } from '@prisma/client'; // Mettez cette ligne exacte !
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-// Le reste de votre code ne bouge pas...
 
+async function cleanAndSeed() {
+  console.log(" Nettoyage complet de la base de données...");
 
+  // 1. Supprime TOUTES les métriques et TOUS les sites existants d'un coup
+  await prisma.metric.deleteMany({});
+  await prisma.website.deleteMany({});
+  
+  console.log("Tables vidées avec succès !");
 
-async function main() {
-  console.log("🚀 Début du remplissage de la base de données...");
+  const user = await prisma.user.findFirst();
+  const userId = user ? user.id : 1;
 
-  // 1. Création d'un utilisateur de test fictif
-  // (Utile car votre schéma dit qu'un site web DOIT appartenir à un utilisateur)
-  const user = await prisma.user.create({
+  
+  await prisma.website.create({
     data: {
-      nom: 'Dupont',
-      prenom: 'Jean',
-      email: 'jean.dupont@example.com',
-      telephone: '0102030405',
-    },
-  });
-  console.log(`👤 Utilisateur créé avec l'ID : ${user.id}`);
-
-  // 2. Ajout de Google France lié à cet utilisateur
-  const google = await prisma.website.create({
-    data: {
+      id: 1,
       name: 'Google France',
-      url: 'https://google.fr',
-      userId: user.id, // On le lie à Jean Dupont
+      url: 'http://localhost:5000/api/websites',
+      userId: userId,
     },
   });
-  console.log(`🌐 Site ajouté : ${google.name}`);
 
-  // 3. Ajout de GitHub Portal lié à cet utilisateur
-  const github = await prisma.website.create({
+  await prisma.website.create({
     data: {
+      id: 2,
       name: 'GitHub Portal',
-      url: 'https://github.com',
-      userId: user.id, // On le lie à Jean Dupont
+      url: 'http://localhost:5000/api/websites',
+      userId: userId,
     },
   });
-  console.log(`🌐 Site ajouté : ${github.name}`);
 
-  console.log("🎉 Base de données initialisée avec succès !");
+  console.log("Base de données propre avec uniquement les URLs locales !");
 }
 
-main()
-  .catch((e) => {
-    console.error("❌ Erreur lors du seed :", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    // Très important : on ferme la connexion à la base de données quand on a fini
-    await prisma.$disconnect();
-  });
+cleanAndSeed()
+  .catch((e) => console.error(e))
+  .finally(async () => await prisma.$disconnect());
