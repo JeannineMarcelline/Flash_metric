@@ -5,3 +5,4 @@ backend/prisma/dev.db-journal
 server/prisma/dev.db
 server/prisma/dev.db-journal
 .DS_Store
+server/generated/
