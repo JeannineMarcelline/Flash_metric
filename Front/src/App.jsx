@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import  {ResponsiveContainer,LineChart,Line,YAxis,Tooltip,CartesianGrid} from 'recharts';
 
 export default function App() {
   const [websites, setWebsites] = useState([]);
@@ -99,21 +100,14 @@ export default function App() {
       {/* Grille pour afficher les cartes des sites */}
       <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {websites.map((site) => {
-          // ==========================================
-          // ZONE DE CALCUL DE TA MÉTRIQUE (AJOUTÉE ICI)
-          // ==========================================
-          
-          // 1. On extrait la première ligne du tableau "metrics" renvoyé par Express
-          const lastMetric = site.metrics && site.metrics[0];
-          
-          // 2. Si le statut de la métrique vaut 200, le site est en ligne (true), sinon (false)
-          // S'il n'y a pas encore de métrique en base, on le considère en ligne par défaut
-          const isOnline = lastMetric ? lastMetric.statut === 200 : true;
-          
-          // 3. On récupère le temps de réponse ou on affiche "..." s'il n'a pas encore été calculé
-          const responseTime = lastMetric ? `${lastMetric.tempsReponse} ms` : '...';
+         const hasMetrics = site.metrics && Array.isArray(site.metrics) && site.metrics.length > 0;
+        const lastMetric = hasMetrics ? site.metrics[0] : null;
 
-          // ==========================================
+          
+          const isOnline = lastMetric ? lastMetric.statut === 200 : true;
+          const responseTime = lastMetric ? `${lastMetric.tempsReponse} ms` : 'En attente';
+          const chartData = hasMetrics ? [...site.metrics].reverse() : [];
+
 
           return (
             <div 
@@ -141,10 +135,35 @@ export default function App() {
               </div>
               
               {/* Bas de la carte */}
-         <div className="pt-4 border-t border-slate-700/50 flex justify-between text-sm">
+             <div className="pt-4 border-t border-slate-700/50 flex justify-between text-sm">
                 <span className="text-slate-400">Temps de réponse</span>
                 <span className="font-medium text-blue-400 font-mono">{responseTime}</span>
               </div>
+               {/* Graphe */}
+               <div className='w-full flex justify-center pt-2'>
+                {chartData.length > 0 ? (
+                   
+                    <LineChart width={280} height={96} data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} opacity={0.2} />
+                      <YAxis hide domain={['auto', 'auto']}/>
+                      <Tooltip contentStyle={{background: '#1e293b', border: '1px solid #334155',borderRadius: '8px', color: '#fff', fontSize: '12px' }}
+                        labelFormatter={() => "Métrique" }
+                      />
+                        <Line
+                          type="monotone"
+                          dataKey="tempsReponse"
+                          stroke="#3b82f6"
+                          strokeWidth={3}
+                          dot={{r: 4, stroke: '#3b82f6', strokeWidth: 1, fill: '#1e293b'}}
+                          activeDot={{ r: 6 }}
+                          name='Vitesse(ms)'
+                        />
+                    </LineChart>
+
+                ) : (
+                  <p className="text-xs text-slate-500 text-center pt-8">Aucune donnée graphique</p>
+                )}
+               </div>
 
                           <div className="pt-2 flex justify-end">
   <button

@@ -15,7 +15,7 @@ app.get('/api/websites', async(req, res) => {
         const websites = await prisma.website.findMany({
             include:{
                 metrics: {
-                    take: 1,
+                    take: 10,
                     orderBy: {
                         createdAt: 'desc'
                     }
